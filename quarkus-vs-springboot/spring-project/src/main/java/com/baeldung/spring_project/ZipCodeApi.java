@@ -2,11 +2,17 @@ package com.baeldung.spring_project;
 
 import com.baeldung.spring_project.domain.ZIPRepo;
 import com.baeldung.spring_project.domain.ZipCode;
+import io.r2dbc.spi.R2dbcDataIntegrityViolationException;
+import io.r2dbc.spi.R2dbcException;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @RestController
@@ -21,7 +27,7 @@ public class ZipCodeApi {
 
     @GetMapping("/{zipcode}")
     public Mono<ZipCode> findById(@PathVariable String zipcode) {
-        return zipRepo.findById(zipcode);
+        return getById(zipcode);
     }
 
     @GetMapping("/by_city")
@@ -29,10 +35,23 @@ public class ZipCodeApi {
         return zipRepo.findByCity(city);
     }
 
-    @Transactional
     @PostMapping
     public Mono<ZipCode> create(@RequestBody ZipCode zipCode) {
-        return zipRepo.findById(zipCode.getZip()).switchIfEmpty(Mono.defer(createZipCode(zipCode)));
+        return getById(zipCode.getZip())
+                .switchIfEmpty(Mono.defer(createZipCode(zipCode)))
+                .onErrorResume(this::isKeyDuplicated, this.recoverWith(zipCode));
+    }
+
+    private Mono<ZipCode> getById(String zipCode) {
+        return zipRepo.findById(zipCode);
+    }
+
+    private boolean isKeyDuplicated(Throwable ex) {
+        return ex instanceof DataIntegrityViolationException || ex instanceof DataAccessResourceFailureException;
+    }
+
+    private Function<? super Throwable, ? extends Mono<ZipCode>> recoverWith(ZipCode zipCode) {
+        return throwable -> zipRepo.findById(zipCode.getZip());
     }
 
     private Supplier<Mono<? extends ZipCode>> createZipCode(ZipCode zipCode) {

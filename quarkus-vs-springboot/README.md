@@ -39,9 +39,9 @@ You can also create a docker image with the JVM version of the app running the s
 docker build -f src/main/docker/Dockerfile.jvm -t spring-project:0.1-SNAPSHOT .
 ```
 
-You can execute the script `start_app.sh` or `start_jvm.sh` to run the application locally. In this case, you will need the Postgres DB. You can run it in docker with the command:
+You can execute the script `start_app.sh` or `start_jvm.sh` to run the application locally. In this case, you will need the Mysql DB. You can run it in docker with the command:
 ```
-docker run -e POSTGRES_PASSWORD=example -p 5432:5432 postgres
+docker run --name mysqldb -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=baeldung -d mysql:5.7.38 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 ```
 You can also run both application and DB from docker, using:
 ```
@@ -67,7 +67,7 @@ And to the JVM version:
 
 To start the application locally, use either the scripts `start_app.sh` and `start_jvm.sh` with the docker DB:
 ```
-docker run -e POSTGRES_PASSWORD=example -p 5432:5432 postgres
+docker run --name mysqldb -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=baeldung -d mysql:5.7.38 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 ```
 Or use the script to build the docker image of the application, running:
 ```bash
