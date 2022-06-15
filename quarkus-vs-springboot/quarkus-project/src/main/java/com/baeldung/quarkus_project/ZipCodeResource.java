@@ -1,10 +1,10 @@
 package com.baeldung.quarkus_project;
 
+import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 
 import javax.persistence.PersistenceException;
-import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
@@ -32,7 +32,7 @@ public class ZipCodeResource {
     }
 
     @POST
-    @Transactional
+    @ReactiveTransactional
     public Uni<ZipCode> create(ZipCode zipCode) {
         return getById(zipCode.getZip())
             .onItem()
